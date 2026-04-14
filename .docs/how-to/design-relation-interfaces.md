@@ -2,19 +2,28 @@
 # How to design relation interfaces
 % Based on: OP083 - Relation Interface Design
 
-When designing the relation data format for a new interface, observe the following rules.
+When designing the relation data format for a new interface, follow this high-level approach:
+
+1. Decide what data needs to be transmitted over a relation.
+2. Design the JSON representation with provisions for backward and forward compatibility. The interface needs to be able to evolve without causing breaking changes or downtime during application upgrades.
+
+This guide provides rules for relation data formats.
+
+## Why is it important to follow the rules?
 
 Relation data outlives a single charm revision: either side of the relation may be upgraded first, and the upgrade itself is not atomic. The same applies to secret content when a Juju secret is shared over a relation.
-Plan for the interface to evolve without causing breaking changes or downtime during application upgrades.
-
-The relation data format is a long-lived contract, while the charm-facing API is easier to change.
-Keep the two separate from the start.
 
 When an interface evolves, some version of a library has to support both the old and new schema, and that complexity should not leak into charm code.
 
-First, decide what data needs to be transmitted over a relation. Then design the JSON representation with provisions for backward and forward compatibility.
+## General requirements
 
-New interface libraries should use `pydantic ~ 2.12; ops ~= 3.6; pyright ~ 1.1.402`, and prefer the `MISSING` sentinel value over the more traditional `None`. Note that such libraries can only be used by charms based on Ubuntu 22.04 or newer.
+### Dependencies
+
+New interface libraries should use `pydantic ~ 2.12; ops ~= 3.6; pyright ~ 1.1.402`. Such libraries can only be used by charms based on Ubuntu 22.04 or newer.
+
+### Missing fields
+
+Prefer the `MISSING` sentinel value over the more traditional `None`:
 
 ```py
 # missing field is read as <MISSING>; deleted when written out
@@ -24,18 +33,26 @@ foo: str | MISSING = MISSING
 foo: str | None = None
 ```
 
+### Charm-facing API
+
+The relation data format is a long-lived contract, while the charm-facing API is easier to change. Design the charm-facing API and relation data format separately from the start.
+
+### Unit tests
+
 Unit tests must capture the interface schema evolution. Unit tests typically also capture the charm-facing API evolution.
 
 When the interface is modified, running unit tests against both new and old test vectors shows the charm library developer what has been extended and what has been broken.
 The developer then updates the unit tests to encode the deliberate choice for how the old data is meant to be handled.
 
-## Design the relation data format
+### Allowed interface changes
 
 The only changes allowed on a published interface are:
 
 - adding a new field, at the top level or nested: this is a new feature that must be communicated by a minor version bump of the library.
 - removing a field: this is a backward-incompatible change, and must be clearly communicated by a major version bump of the library.
 - tweaking field validators or extending or narrowing an enumeration value range: must be done with extra care, including compatibility testing between the old and new versions of the library.
+
+## Design the relation data format
 
 ### Fixed field types
 
