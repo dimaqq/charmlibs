@@ -5,15 +5,16 @@
 When designing the relation data format for a new interface, follow this high-level approach:
 
 1. Decide what data needs to be transmitted over a relation.
-2. Design the JSON representation with provisions for backward and forward compatibility. The interface needs to be able to evolve without causing breaking changes or downtime during application upgrades.
+2. Design the JSON representation with provisions for backward and forward compatibility.
 
 This guide provides rules for relation data formats.
 
 ## Why is it important to follow the rules?
 
+The interface needs to be able to evolve without causing breaking changes or downtime during application upgrades.
 Relation data outlives a single charm revision: either side of the relation may be upgraded first, and the upgrade itself is not atomic. The same applies to secret content when a Juju secret is shared over a relation.
 
-When an interface evolves, some version of a library has to support both the old and new schema, and that complexity should not leak into charm code.
+When the interface evolves, some version of the library has to support both the old and new schema, and that complexity should not leak into charm code.
 
 ## General requirements
 
